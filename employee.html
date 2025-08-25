@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Checkout – Employee</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <img src="logo.png" alt="Company Logo" class="logo">
+    <h1 id="headerTitle">Inventory Checkout</h1>
+    <!-- Login Section -->
+    <div id="loginSection">
+      <h2>Employee Login</h2>
+      <label for="loginUsername">Username</label>
+      <input type="text" id="loginUsername" placeholder="Enter username" required>
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" required>
+      <button id="loginButton" class="btn-primary">Login</button>
+      <p id="loginError" class="hidden" style="color:#d14343; margin-top:10px;"></p>
+    </div>
+
+    <!-- Main Section (hidden until login) -->
+    <div id="mainSection" class="hidden">
+      <div class="nav">
+        <div>
+          <button id="newRequestNav" class="btn-secondary">New Request</button>
+          <button id="dashboardNav" class="btn-secondary">My Requests</button>
+        </div>
+        <button id="logoutButton" class="btn-secondary">Logout</button>
+      </div>
+
+      <!-- Success message placeholder -->
+      <div id="successMessage" class="hidden success-message">
+        Request submitted successfully! Your approver will review your request.
+      </div>
+
+      <!-- Request Section -->
+      <div id="requestSection">
+        <h2>Submit New Request</h2>
+        <form id="requestForm">
+          <fieldset>
+            <legend>Requester Information</legend>
+            <label for="name">Name<span class="required">*</span></label>
+            <input type="text" id="name" name="name" readonly>
+
+            <label for="date">Date<span class="required">*</span></label>
+            <input type="date" id="date" name="date" required>
+          </fieldset>
+
+          <fieldset>
+            <legend>Purpose of Request<span class="required">*</span></legend>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="purpose" value="stocking" required>
+                Stocking
+              </label>
+              <label>
+                <input type="radio" name="purpose" value="service" required>
+                Service/Installation
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Location & Order Details</legend>
+            <label for="warehouse">Warehouse Location<span class="required">*</span></label>
+            <input type="text" id="warehouse" name="warehouse" required placeholder="e.g. Main Warehouse - Building A">
+
+            <label for="poNumber">Purchase Order # (if applicable)</label>
+            <input type="text" id="poNumber" name="poNumber" placeholder="e.g. PO-2024-001">
+
+            <label for="projectNumber">Project/Department/Job #</label>
+            <input type="text" id="projectNumber" name="projectNumber" placeholder="e.g. JOB-1234">
+          </fieldset>
+
+          <fieldset>
+            <legend>Items</legend>
+            <label>What are you taking today?<span class="required">*</span></label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="itemMode" value="single" checked>
+                One Item
+              </label>
+              <label>
+                <input type="radio" name="itemMode" value="multiple">
+                Multiple Items
+              </label>
+            </div>
+
+            <!-- Single item section -->
+            <div id="singleItemSection">
+              <label for="partNumber">Part Number & Description<span class="required">*</span></label>
+              <input type="text" id="partNumber" name="partNumber" placeholder="e.g. CAP-45" required>
+
+              <label for="singleQuantity">Quantity<span class="required">*</span></label>
+              <input type="number" id="singleQuantity" name="singleQuantity" min="1" value="1" required>
+
+              <label for="singlePrice">Price (if applicable)</label>
+              <input type="number" id="singlePrice" name="singlePrice" min="0" step="0.01" placeholder="0.00">
+            </div>
+
+            <!-- Multiple items section -->
+            <div id="multipleItemsSection" class="hidden">
+              <table id="itemsTable">
+                <thead>
+                  <tr>
+                    <th>Part Number & Description<span class="required">*</span></th>
+                    <th>Quantity<span class="required">*</span></th>
+                    <th>Price (if applicable)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="itemsBody">
+                  <!-- Rows will be added dynamically here -->
+                </tbody>
+              </table>
+              <button type="button" id="addItemButton" class="btn-secondary">Add Item</button>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Notes</legend>
+            <label for="notes">Items list or comments</label>
+            <textarea id="notes" name="notes" rows="4" placeholder="One item per line, e.g.:\nCAP-45 x 2\nFAN-MOTOR-1, 3\n2 x FILTER-20x25x1"></textarea>
+          </fieldset>
+
+          <fieldset>
+            <legend>Price (Optional)</legend>
+            <label for="totalPrice">Total Price (if applicable)</label>
+            <input type="number" id="totalPrice" name="totalPrice" min="0" step="0.01" placeholder="0.00">
+          </fieldset>
+
+          <fieldset>
+            <legend>Approval & Confirmation</legend>
+            <label for="approver">Select Approver<span class="required">*</span></label>
+            <select id="approver" name="approver" required>
+              <!-- Options populated by JS -->
+            </select>
+            <label class="checkbox-label">
+              <input type="checkbox" id="confirm" name="confirm" required>
+              I confirm that the above information is accurate
+            </label>
+          </fieldset>
+
+          <button type="submit" class="btn-primary">Submit Request</button>
+        </form>
+      </div>
+
+      <!-- Dashboard Section -->
+      <div id="dashboardSection" class="hidden">
+        <h2>My Requests</h2>
+        <!-- Wrap the table to enable horizontal scrolling and preserve row backgrounds -->
+        <div class="table-wrapper">
+          <table id="dashboardTable">
+            <thead>
+            <tr>
+                <th></th>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Purpose</th>
+                <th>Warehouse</th>
+                <th>Items</th>
+                <th>Approver</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardBody">
+              <!-- Rows will be populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="employee.js"></script>
+  <!-- Register service worker for PWA functionality -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js').catch(function(error) {
+          console.error('Service Worker registration failed:', error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

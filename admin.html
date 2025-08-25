@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Checkout – Admin</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Load Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- QR Code library for generating QR codes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo -->
+    <img src="logo.png" alt="Company Logo" class="logo">
+    <h1 id="adminHeader">Admin Portal</h1>
+    <!-- Login Section -->
+    <div id="adminLoginSection">
+      <h2>Admin/Approver Login</h2>
+      <label for="adminLoginUsername">Username</label>
+      <input type="text" id="adminLoginUsername" placeholder="Enter username" required>
+      <label for="adminLoginPassword">Password</label>
+      <input type="password" id="adminLoginPassword" placeholder="Enter password" required>
+      <button id="adminLoginButton" class="btn-primary">Login</button>
+      <p id="adminLoginError" class="hidden" style="color:#d14343; margin-top:10px;"></p>
+    </div>
+
+    <!-- Main Section for logged-in admins/approvers -->
+    <div id="adminMainSection" class="hidden">
+      <div class="nav">
+        <div>
+          <button id="requestsNav" class="btn-secondary">Requests</button>
+          <button id="usersNav" class="btn-secondary">User Management</button>
+          <button id="analyticsNav" class="btn-secondary">Analytics</button>
+          <button id="qrNav" class="btn-secondary">QR Code</button>
+        </div>
+        <button id="adminLogoutButton" class="btn-secondary">Logout</button>
+      </div>
+
+      <!-- Requests Section -->
+      <div id="requestsSection">
+        <h2>Pending Requests</h2>
+        <div class="table-wrapper">
+        <table class="admin-table" id="pendingTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th>ID</th>
+              <th>Requester</th>
+              <th>Date</th>
+              <th>Purpose</th>
+              <th>Warehouse</th>
+              <th>Project/Job #</th>
+              <th>PO #</th>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Notes</th>
+              <th>Requested Approver</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pendingBody"></tbody>
+        </table>
+        </div>
+
+        <h2>Approved Requests</h2>
+        <div class="table-wrapper">
+        <table class="admin-table" id="approvedTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th>ID</th>
+              <th>Requester</th>
+              <th>Date</th>
+              <th>Purpose</th>
+              <th>Warehouse</th>
+              <th>Project/Job #</th>
+              <th>PO #</th>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Notes</th>
+              <th>Requested Approver</th>
+              <th>Actual Approver</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="approvedBody"></tbody>
+        </table>
+        </div>
+
+        <h2>Rejected Requests</h2>
+        <div class="table-wrapper">
+        <table class="admin-table" id="rejectedTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th>ID</th>
+              <th>Requester</th>
+              <th>Date</th>
+              <th>Purpose</th>
+              <th>Warehouse</th>
+              <th>Project/Job #</th>
+              <th>PO #</th>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Notes</th>
+              <th>Requested Approver</th>
+              <th>Actual Approver</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rejectedBody"></tbody>
+        </table>
+        </div>
+        <!-- Export button (visible to superadmin only) -->
+        <div class="mt-4">
+          <button id="exportCsvButton" class="btn-primary">Export All Requests to CSV</button>
+        </div>
+      </div>
+
+      <!-- User Management Section (superadmin only) -->
+      <div id="usersSection" class="hidden">
+        <h2>User Management</h2>
+        <h3>Add New User</h3>
+        <form id="addUserForm">
+          <label for="newUsername">Username<span class="required">*</span></label>
+          <input type="text" id="newUsername" required placeholder="e.g. jsmith">
+          <label for="newName">Full Name<span class="required">*</span></label>
+          <input type="text" id="newName" required placeholder="e.g. John Smith">
+          <label for="newPassword">Password<span class="required">*</span></label>
+          <input type="password" id="newPassword" required>
+          <label for="newRole">Role<span class="required">*</span></label>
+          <select id="newRole" required>
+            <option value="employee">Employee</option>
+            <option value="approver">Approver</option>
+          </select>
+          <button type="submit" class="btn-primary mt-2">Add User</button>
+        </form>
+        <h3 class="mt-4">Existing Users</h3>
+        <table class="admin-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Full Name</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Analytics Section (superadmin only) -->
+      <div id="analyticsSection" class="hidden">
+        <h2>Analytics</h2>
+        <canvas id="statusChart" width="400" height="200"></canvas>
+        <canvas id="purposeChart" width="400" height="200" class="mt-4"></canvas>
+      </div>
+
+
+      <!-- Edit Modal -->
+      <div id="editModal" class="modal hidden">
+        <div class="modal-content">
+          <h3>Edit Request</h3>
+          <form id="editForm">
+            <label for="editWarehouse">Warehouse Location</label>
+            <input type="text" id="editWarehouse">
+            <label for="editProject">Project/Job #</label>
+            <input type="text" id="editProject">
+            <label for="editPO">Purchase Order #</label>
+            <input type="text" id="editPO">
+            <label for="editNotes">Notes</label>
+            <textarea id="editNotes" rows="3"></textarea>
+            <div class="modal-actions">
+              <button type="button" id="saveEditButton" class="btn-primary">Save</button>
+              <button type="button" id="modalCancelButton" class="btn-secondary">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- QR Code Section -->
+      <div id="qrSection" class="hidden">
+        <h2>Request Form QR Code</h2>
+        <p>Scan this QR code with your mobile device to open the request form. The URL is based on the current site and will redirect to the employee login page.</p>
+        <div id="qrCodeContainer" style="margin-top: 20px;"></div>
+      </div>
+    </div>
+  </div>
+  <script src="admin.js"></script>
+  <!-- Register service worker for PWA functionality -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js').catch(function(error) {
+          console.error('Service Worker registration failed:', error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
